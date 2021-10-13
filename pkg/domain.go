@@ -1,41 +1,44 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
-type State int
+type State string
 
 const (
-	Pending    State = 0
-	Processing State = 1
-	Succeeded  State = 2
-	Failed     State = 3
+	StatePending    State = "pending"
+	StateProcessing State = "processing"
+	StateSucceeded  State = "succeeded"
+	StateFailed     State = "failed"
 )
 
 type Task struct {
-	ID        string
-	ClaimID   string
-	State     int
-	ExecuteAt time.Time
-	UpdatedAt time.Time
-	Deadline  time.Time
-	Payload   map[string]interface{}
-	Result    string
+	ID        string                 `json:"id"`
+	ClaimID   string                 `json:"-"`
+	State     State                  `json:"state"`
+	ExecuteAt time.Time              `json:"executeAt"`
+	UpdatedAt time.Time              `json:"-"`
+	Deadline  time.Time              `json:"deadline"`
+	Payload   map[string]interface{} `json:"payload"`
+	Meta      map[string]interface{} `json:"-"`
+	Result    string                 `json:"result,omitempty"`
 }
 
-type Service interface {
+type Scheduler interface {
 	// Public interface
-	Set(*Task) error
+	Set(*Task) (*Task, error)
 	Get(id string) (*Task, error)
 
 	// Private interface
-	Issue() ([]*Task, error)
+	Issue(amount int) ([]*Task, error)
 	Succeed(id, claimID, result string) error
 	Fail(id, claimID, reason string) error
 }
 
 type Gateway interface {
-	Create(task *Task) error
-	GetByID(id string) (*Task, error)
+	Create(task *Task) (*Task, error)
+	FindByID(id string) (*Task, error)
 	ClaimPending(amount int) ([]*Task, error)
 	MarkAsSucceeded(id, claimID, result string) error
 	MarkAsFailed(id, claimID, reason string) error

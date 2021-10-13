@@ -9,6 +9,7 @@ import (
 	"net/rpc/jsonrpc"
 	"time"
 
+	domain "github.com/freundallein/scheduler/pkg"
 	log "github.com/freundallein/scheduler/pkg/utils/logging"
 )
 
@@ -29,17 +30,20 @@ type Service struct {
 }
 
 // New returns service instance
-func New(opts ...Option) *Service {
+func New(scheduler domain.Scheduler, opts ...Option) *Service {
 	svc := &Service{}
 	for _, opt := range opts {
 		opt(svc)
 	}
 	rpcServer := rpc.NewServer()
-	rpcServer.Register(&Scheduler{})
+	rpcServer.Register(&Scheduler{
+		sch: scheduler,
+	})
 	mux := http.NewServeMux()
 	mux.HandleFunc(
 		"/rpc/v0",
 		func(w http.ResponseWriter, r *http.Request) {
+			// TODO: add auth
 			serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
 			err := rpcServer.ServeRequest(serverCodec)
 			if err != nil {

@@ -6,6 +6,15 @@ export PG_DSN=postgres://scheduler:scheduler@192.168.64.6:5432/scheduler
 run:
 	go run cmd/main.go
 
+fmt:
+	go fmt ./...
+
+test:
+	go test -cover ./...
+
+tidy:
+	go mod tidy
+
 build:
 	CGO_ENABLED=0 go build -ldflags="-w -s" -a -o ./bin/scheduler ./cmd/
 

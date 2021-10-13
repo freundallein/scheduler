@@ -10,8 +10,11 @@ import (
 	log "github.com/freundallein/scheduler/pkg/utils/logging"
 	"github.com/oklog/run"
 
+	domain "github.com/freundallein/scheduler/pkg"
 	"github.com/freundallein/scheduler/pkg/adapters/apiserv"
 
+	"github.com/freundallein/scheduler/pkg/mock"
+	"github.com/freundallein/scheduler/pkg/scheduler"
 	"github.com/freundallein/scheduler/pkg/utils"
 	"github.com/freundallein/scheduler/pkg/utils/opsserv"
 )
@@ -30,7 +33,26 @@ func main() {
 	apiPort := utils.GetEnv(apiPortKey, "8000")
 	opsPort := utils.GetEnv(opsPortKey, "8001")
 
+	scheduler := scheduler.New(
+		&mock.Gateway{
+			CreateFn: func(task *domain.Task) (*domain.Task, error) {
+				return task, nil
+			},
+			FindByIDFn: func(id string) (*domain.Task, error) {
+				return &domain.Task{
+					ID:    "123",
+					State: domain.StatePending,
+					Meta: map[string]interface{}{
+						"attempt":     1,
+						"lastFailure": "no data",
+					},
+				}, nil
+			},
+		},
+	)
+
 	apiService := apiserv.New(
+		scheduler,
 		apiserv.WithPort(apiPort),
 	)
 	opsService := opsserv.New(
@@ -47,7 +69,7 @@ func main() {
 			case <-ctx.Done():
 				return nil
 			case s := <-sig:
-				return fmt.Errorf("sig_recv %v", s)
+				return fmt.Errorf("signal_recv %v", s)
 			}
 		}, func(err error) {
 			log.WithFields(log.Fields{
