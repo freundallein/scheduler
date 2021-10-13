@@ -22,7 +22,7 @@ type Task struct {
 	Result    string
 }
 
-type Gateway interface {
+type Service interface {
 	// Public interface
 	Set(*Task) error
 	Get(id string) (*Task, error)
@@ -31,4 +31,12 @@ type Gateway interface {
 	Issue() ([]*Task, error)
 	Succeed(id, claimID, result string) error
 	Fail(id, claimID, reason string) error
+}
+
+type Gateway interface {
+	Create(task *Task) error
+	GetByID(id string) (*Task, error)
+	ClaimPending(amount int) ([]*Task, error)
+	MarkAsSucceeded(id, claimID, result string) error
+	MarkAsFailed(id, claimID, reason string) error
 }

@@ -1,14 +1,26 @@
-package opsserv
+package apiserv
 
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"net/rpc"
+	"net/rpc/jsonrpc"
 	"time"
 
 	log "github.com/freundallein/scheduler/pkg/utils/logging"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+// adapt HTTP connection to ReadWriteCloser
+type HttpConn struct {
+	in  io.Reader
+	out io.Writer
+}
+
+func (c *HttpConn) Read(p []byte) (n int, err error)  { return c.in.Read(p) }
+func (c *HttpConn) Write(d []byte) (n int, err error) { return c.out.Write(d) }
+func (c *HttpConn) Close() error                      { return nil }
 
 // Service used as an endpoint for operations management.
 type Service struct {
@@ -22,16 +34,20 @@ func New(opts ...Option) *Service {
 	for _, opt := range opts {
 		opt(svc)
 	}
+	rpcServer := rpc.NewServer()
+	rpcServer.Register(&Scheduler{})
 	mux := http.NewServeMux()
-	mux.Handle(
-		"/ops/metrics",
-		promhttp.Handler(),
-	)
 	mux.HandleFunc(
-		"/ops/healthcheck",
+		"/rpc/v0",
 		func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
+			err := rpcServer.ServeRequest(serverCodec)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err": err,
+				}).Error("err_while_serving_json_rpc")
+				return
+			}
 		},
 	)
 	addr := fmt.Sprintf("0.0.0.0:%s", svc.Port)
@@ -50,7 +66,7 @@ func New(opts ...Option) *Service {
 func (svc *Service) Run(ctx context.Context) error {
 	log.WithFields(log.Fields{
 		"addr": svc.httpserv.Addr,
-	}).Info("ops_svc_starting")
+	}).Info("api_svc_starting")
 	return svc.httpserv.ListenAndServe()
 }
 
