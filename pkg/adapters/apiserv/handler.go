@@ -1,6 +1,7 @@
 package apiserv
 
 import (
+	"context"
 	"time"
 
 	domain "github.com/freundallein/scheduler/pkg"
@@ -26,7 +27,8 @@ func (handler *Scheduler) Set(params *SetParams, result *map[string]interface{})
 		ExecuteAt: time.Now(),
 		Payload:   payload,
 	}
-	task, err := handler.sch.Set(task)
+	ctx := context.Background()
+	task, err := handler.sch.Set(ctx, task)
 	if err != nil {
 		return err
 	}
@@ -45,7 +47,8 @@ type GetParams struct {
 //  '{"jsonrpc": "2.0", "method": "Scheduler.Get", "params":[{"id":"123"}], "id": "1"}' \
 //  http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Get(params *GetParams, result *map[string]interface{}) error {
-	task, err := handler.sch.Get(params.ID)
+	ctx := context.Background()
+	task, err := handler.sch.Get(ctx, params.ID)
 	if err != nil {
 		return err
 	}

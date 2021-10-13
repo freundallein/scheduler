@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 )
 
@@ -27,19 +28,19 @@ type Task struct {
 
 type Scheduler interface {
 	// Public interface
-	Set(*Task) (*Task, error)
-	Get(id string) (*Task, error)
+	Set(ctx context.Context, task *Task) (*Task, error)
+	Get(ctx context.Context, id string) (*Task, error)
 
 	// Private interface
-	Issue(amount int) ([]*Task, error)
-	Succeed(id, claimID, result string) error
-	Fail(id, claimID, reason string) error
+	Issue(ctx context.Context, amount int) ([]*Task, error)
+	Succeed(ctx context.Context, id, claimID, result string) error
+	Fail(ctx context.Context, id, claimID, reason string) error
 }
 
 type Gateway interface {
-	Create(task *Task) (*Task, error)
-	FindByID(id string) (*Task, error)
-	ClaimPending(amount int) ([]*Task, error)
-	MarkAsSucceeded(id, claimID, result string) error
-	MarkAsFailed(id, claimID, reason string) error
+	Create(ctx context.Context, task *Task) (*Task, error)
+	FindByID(ctx context.Context, id string) (*Task, error)
+	ClaimPending(ctx context.Context, amount int) ([]*Task, error)
+	MarkAsSucceeded(ctx context.Context, id, claimID, result string) error
+	MarkAsFailed(ctx context.Context, id, claimID, reason string) error
 }
