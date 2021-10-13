@@ -26,10 +26,9 @@ func main() {
 	log.Info("init_service")
 	opsPort := utils.GetEnv(opsPortKey, "8001")
 
-	opsOptions := &opsserv.Options{
-		Port: opsPort,
-	}
-	opsService := opsserv.New(opsOptions)
+	opsService := opsserv.New(
+		opsserv.WithPort(opsPort),
+	)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var g run.Group
@@ -52,15 +51,12 @@ func main() {
 	}
 	{
 		g.Add(func() error {
-			log.WithFields(log.Fields{
-				"addr": opsService.Srv.Addr,
-			}).Info("ops_svc_starting")
 			return opsService.Run()
 		}, func(err error) {
 			log.WithFields(log.Fields{
 				"err": err,
 			}).Info("ops_svc_interrupted")
-			if err := opsService.Srv.Shutdown(ctx); err != nil {
+			if err := opsService.Shutdown(ctx); err != nil {
 				log.WithFields(log.Fields{
 					"err": err,
 				}).Info("ops_svc_shutdown")
