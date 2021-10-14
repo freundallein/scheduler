@@ -46,7 +46,7 @@ type Scheduler interface {
 	// Public interface
 	// Set allows to enqueue task.
 	Set(ctx context.Context, task *Task) (*Task, error)
-	// Set allows to poll a task state.
+	// Get allows to poll a task state.
 	Get(ctx context.Context, id uuid.UUID) (*Task, error)
 
 	// Private interface

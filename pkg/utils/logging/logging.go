@@ -12,10 +12,10 @@ const (
 
 var logger = logrus.NewEntry(logrus.New())
 
-// Fields ...
+// Fields describes auxiliary logged fields.
 type Fields logrus.Fields
 
-// Init ...
+// Init used for a logger initialisation.
 func Init(module, logLevel string) {
 	customFormatter := &logrus.TextFormatter{}
 	customFormatter.TimestampFormat = timeFormat
@@ -36,27 +36,27 @@ func Init(module, logLevel string) {
 	logger.Debug("init_logger")
 }
 
-// WithFields ...
+// WithFields used for adding auxiliary fields to event.
 func WithFields(fields Fields) *logrus.Entry {
 	return logger.WithFields(logrus.Fields(fields))
 }
 
-// Fatal ...
+// Fatal logs fatal events.
 func Fatal(args ...interface{}) {
 	logger.Fatal(args...)
 }
 
-// Error ...
+// Error logs errors.
 func Error(args ...interface{}) {
 	logger.Error(args...)
 }
 
-// Info ...
+// Info logs events for information.
 func Info(args ...interface{}) {
 	logger.Info(args...)
 }
 
-// Debug ...
+// Debug logs debug events.
 func Debug(args ...interface{}) {
 	logger.Debug(args...)
 }
