@@ -4,15 +4,18 @@ import (
 	"context"
 
 	domain "github.com/freundallein/scheduler/pkg"
+	"github.com/google/uuid"
 )
 
+// Gateway mocks domain.Gateway.
 type Gateway struct {
 	CreateFn          func(task *domain.Task) (*domain.Task, error)
-	FindByIDFn        func(id string) (*domain.Task, error)
+	FindByIDFn        func(id uuid.UUID) (*domain.Task, error)
 	ClaimPendingFn    func(amount int) ([]*domain.Task, error)
-	MarkAsSucceededFn func(id, claimID, result string) error
-	MarkAsFailedFn    func(id, claimID, reason string) error
+	MarkAsSucceededFn func(id, claimID uuid.UUID, result map[string]interface{}) error
+	MarkAsFailedFn    func(id, claimID uuid.UUID, reason string) error
 }
+
 
 func (m *Gateway) Create(ctx context.Context, task *domain.Task) (*domain.Task, error) {
 	if m.CreateFn == nil {
@@ -20,7 +23,7 @@ func (m *Gateway) Create(ctx context.Context, task *domain.Task) (*domain.Task, 
 	}
 	return m.CreateFn(task)
 }
-func (m *Gateway) FindByID(ctx context.Context, id string) (*domain.Task, error) {
+func (m *Gateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
 	if m.FindByIDFn == nil {
 		panic("Gateway.FindByIDFn is not implemented")
 	}
@@ -32,13 +35,13 @@ func (m *Gateway) ClaimPending(ctx context.Context, amount int) ([]*domain.Task,
 	}
 	return m.ClaimPendingFn(amount)
 }
-func (m *Gateway) MarkAsSucceeded(ctx context.Context, id, claimID, result string) error {
+func (m *Gateway) MarkAsSucceeded(ctx context.Context, id, claimID uuid.UUID, result map[string]interface{}) error {
 	if m.MarkAsSucceededFn == nil {
 		panic("Gateway.MarkAsSucceededFn is not implemented")
 	}
 	return m.MarkAsSucceededFn(id, claimID, result)
 }
-func (m *Gateway) MarkAsFailed(ctx context.Context, id, claimID, reason string) error {
+func (m *Gateway) MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, reason string) error {
 	if m.MarkAsFailedFn == nil {
 		panic("Gateway.MarkAsFailedFn is not implemented")
 	}

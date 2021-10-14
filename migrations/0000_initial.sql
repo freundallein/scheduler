@@ -1,4 +1,5 @@
 -- Initial migration
+create extension if not exists "uuid-ossp";
 
 drop type if exists state cascade;
 create type task_state as enum (
@@ -13,7 +14,7 @@ create table task (
 	id uuid not null,
 	claim_id uuid,
 	state task_state not null default 'pending',
-    executed_at timestamp with time zone not null,
+    execute_at timestamp with time zone not null,
     deadline timestamp with time zone not null,
     payload JSONB not null,
     result JSONB not null default '{}',
@@ -21,4 +22,7 @@ create table task (
 	primary key(id)
 );
 
-create index task_state on task (executed_at, id) where state <> 'succeeded';
+create index task_state on task (execute_at, id) where state <> 'succeeded';
+
+-- TODO: optimize autovacuum settings for tables
+-- TODO: add failure table

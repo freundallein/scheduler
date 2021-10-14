@@ -7,41 +7,67 @@ import (
 	"github.com/google/uuid"
 )
 
+// State describes task states.
 type State string
 
 const (
-	StatePending    State = "pending"
+	// StatePending means, that task was created and is waiting for processing.
+	StatePending State = "pending"
+	// StateProcessing measn, that a tasj is processing by a worker.
 	StateProcessing State = "processing"
-	StateSucceeded  State = "succeeded"
-	StateFailed     State = "failed"
+	// StateSucceeded means, that a task was successfully processed.
+	StateSucceeded State = "succeeded"
+	// StateFailed means, that we got failure during processing.
+	StateFailed State = "failed"
 )
 
+// Task describes a work unit.
 type Task struct {
-	ID        uuid.UUID              `json:"id"`
-	ClaimID   uuid.UUID              `json:"claimId,omitempty"`
-	State     State                  `json:"state"`
-	ExecuteAt time.Time              `json:"executeAt"`
-	Deadline  time.Time              `json:"deadline"`
-	Payload   map[string]interface{} `json:"payload"`
-	Result    map[string]interface{} `json:"result,omitempty"`
-	Meta      map[string]interface{} `json:"-"`
+	// ID is a task identifier.
+	ID uuid.UUID `json:"id"`
+	// ClaimID used for worker identification and result linearisation.
+	ClaimID uuid.UUID `json:"claimId,omitempty"`
+	// State describes current task's state.
+	State State `json:"state"`
+	// ExecuteAt allows scheduler to define when to execute a task.
+	ExecuteAt time.Time `json:"executeAt"`
+	// Deadline  allows scheduler to define when task becomes stale.
+	Deadline time.Time `json:"deadline"`
+	// Payload describes the task itself.
+	Payload map[string]interface{} `json:"payload"`
+	// Result shows the result of a task processing.
+	Result map[string]interface{} `json:"result,omitempty"`
+	// Meta used for a service information.
+	Meta map[string]interface{} `json:"-"`
 }
 
+// Scheduler used for task processing.
 type Scheduler interface {
 	// Public interface
+	// Set allows to enqueue task.
 	Set(ctx context.Context, task *Task) (*Task, error)
-	Get(ctx context.Context, id string) (*Task, error)
+	// Set allows to poll a task state.
+	Get(ctx context.Context, id uuid.UUID) (*Task, error)
 
 	// Private interface
-	Issue(ctx context.Context, amount int) ([]*Task, error)
-	Succeed(ctx context.Context, id, claimID, result string) error
-	Fail(ctx context.Context, id, claimID, reason string) error
+	// Claim gives a task to worker.
+	Claim(ctx context.Context, amount int) ([]*Task, error)
+	// Succeed marks a task as done.
+	Succeed(ctx context.Context, id, claimID uuid.UUID, result map[string]interface{}) error
+	// Fail marks a task as failed.
+	Fail(ctx context.Context, id, claimID uuid.UUID, reason string) error
 }
 
+// Gateway describes database access to a task.
 type Gateway interface {
+	// Create makes record with new task.
 	Create(ctx context.Context, task *Task) (*Task, error)
-	FindByID(ctx context.Context, id string) (*Task, error)
+	// FindByID allows to poll a task state.
+	FindByID(ctx context.Context, id uuid.UUID) (*Task, error)
+	// ClaimPending used for locking tasks.
 	ClaimPending(ctx context.Context, amount int) ([]*Task, error)
-	MarkAsSucceeded(ctx context.Context, id, claimID, result string) error
-	MarkAsFailed(ctx context.Context, id, claimID, reason string) error
+	// MarkAsSucceeded marks a task as succefully processed.
+	MarkAsSucceeded(ctx context.Context, id, claimID uuid.UUID, result map[string]interface{}) error
+	// MarkAsFailed marks a task as failed.
+	MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, reason string) error
 }

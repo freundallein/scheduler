@@ -95,11 +95,11 @@ func TestGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			scheduler := New(
 				&mock.Gateway{
-					FindByIDFn: func(id string) (*domain.Task, error) {
+					FindByIDFn: func(id uuid.UUID) (*domain.Task, error) {
 						if tt.expectedErr != nil {
 							return nil, tt.expectedErr
 						}
-						if id != tt.expectedID.String() {
+						if id != tt.expectedID {
 							return nil, fmt.Errorf("task not found")
 						}
 						return tt.task, nil
@@ -107,7 +107,7 @@ func TestGet(t *testing.T) {
 				},
 			)
 			ctx := context.Background()
-			observed, err := scheduler.Get(ctx, tt.expectedID.String())
+			observed, err := scheduler.Get(ctx, tt.expectedID)
 			if !errors.Is(err, tt.expectedErr) {
 				t.Errorf("Expected `%v`, got: `%v`", tt.expectedErr, err)
 			}

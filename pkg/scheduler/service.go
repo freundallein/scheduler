@@ -4,6 +4,7 @@ import (
 	"context"
 
 	domain "github.com/freundallein/scheduler/pkg"
+	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -20,18 +21,18 @@ func (svc *Service) Set(ctx context.Context, task *domain.Task) (*domain.Task, e
 	return svc.taskGateway.Create(ctx, task)
 }
 
-func (svc *Service) Get(ctx context.Context, id string) (*domain.Task, error) {
+func (svc *Service) Get(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
 	return svc.taskGateway.FindByID(ctx, id)
 }
 
-func (svc *Service) Issue(ctx context.Context, amount int) ([]*domain.Task, error) {
+func (svc *Service) Claim(ctx context.Context, amount int) ([]*domain.Task, error) {
 	return svc.taskGateway.ClaimPending(ctx, amount)
 }
 
-func (svc *Service) Succeed(ctx context.Context, id, claimID, result string) error {
+func (svc *Service) Succeed(ctx context.Context, id, claimID uuid.UUID, result map[string]interface{}) error {
 	return svc.taskGateway.MarkAsSucceeded(ctx, id, claimID, result)
 }
 
-func (svc *Service) Fail(ctx context.Context, id, claimID, reason string) error {
+func (svc *Service) Fail(ctx context.Context, id, claimID uuid.UUID, reason string) error {
 	return svc.taskGateway.MarkAsFailed(ctx, id, claimID, reason)
 }
