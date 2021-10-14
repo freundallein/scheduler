@@ -9,3 +9,9 @@ func WithPort(port string) Option {
 		s.Port = port
 	}
 }
+
+func WithToken(token string) Option {
+	return func(s *Service) {
+		s.Token = token
+	}
+}

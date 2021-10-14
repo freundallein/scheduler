@@ -20,9 +20,13 @@ create table task (
     result JSONB not null default '{}',
     meta JSONB not null default '{}',
 	primary key(id)
+) with (
+	autovacuum_vacuum_threshold = 100,
+	autovacuum_vacuum_scale_factor = 0.2,
+	autovacuum_vacuum_cost_delay = 20,
+	autovacuum_vacuum_cost_limit = 200
 );
 
 create index task_state on task (execute_at, id) where state <> 'succeeded';
 
--- TODO: optimize autovacuum settings for tables
 -- TODO: add failure table

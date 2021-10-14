@@ -27,6 +27,7 @@ func (c *HttpConn) Close() error                      { return nil }
 type Service struct {
 	httpserv *http.Server
 	Port     string
+	Token    string
 }
 
 // New returns service instance
@@ -43,7 +44,15 @@ func New(scheduler domain.Scheduler, opts ...Option) *Service {
 	mux.HandleFunc(
 		"/rpc/v0",
 		func(w http.ResponseWriter, r *http.Request) {
-			// TODO: add auth
+			auth := r.Header.Get("Auth")
+			if svc.Token != "" && auth != svc.Token {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("401 - not authorized"))
+				return
+			}
+			log.WithFields(log.Fields{
+				"auth": auth,
+			}).Debug("auth_header")
 			serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
 			err := rpcServer.ServeRequest(serverCodec)
 			if err != nil {

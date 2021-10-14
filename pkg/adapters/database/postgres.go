@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	domain "github.com/freundallein/scheduler/pkg"
@@ -46,8 +45,9 @@ func (gw *TaskGateway) Create(ctx context.Context, task *domain.Task) (*domain.T
 		&task.Meta,
 	)
 	if err != nil {
-		// TODO: handle duplicate error as OK
-		// domain.Error{Code: domain.SomethingAboutIdempotance}
+		if err.Error() == `ERROR: duplicate key value violates unique constraint "task_pkey" (SQLSTATE 23505)` {
+			return nil, domain.Error{Code: domain.ErrDuplicateTask, Inner: err, Message: "task already set"}
+		}
 		return nil, err
 	}
 	return task, nil
@@ -69,8 +69,9 @@ func (gw *TaskGateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task
 		&task.Meta,
 	)
 	if err != nil {
-		// TODO: handle not found
-		// domain.Error{Code: domain.NotFound}
+		if err.Error() == "no rows in result set" {
+			return nil, domain.Error{Code: domain.ErrTaskNotFound, Message: "task not found"}
+		}
 		return nil, err
 	}
 	return task, nil
@@ -102,8 +103,6 @@ func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.
 	tasks := []*domain.Task{}
 	rows, err := gw.pool.Query(ctx, query, amount)
 	if err != nil {
-		// TODO: handle no task
-		// domain.Error{Code: domain.NoPendingTasks}
 		return nil, err
 	}
 	for rows.Next() {
@@ -122,6 +121,9 @@ func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.
 			return nil, err
 		}
 		tasks = append(tasks, task)
+	}
+	if len(tasks) == 0 {
+		return nil, domain.Error{Code: domain.ErrNoPendingTasks, Message: "no pending tasks"}
 	}
 	return tasks, nil
 }
@@ -146,11 +148,8 @@ func (gw *TaskGateway) MarkAsSucceeded(ctx context.Context, id, claimID uuid.UUI
 	if err != nil {
 		return err
 	}
-	updatedCount := tag.RowsAffected()
 	if tag.RowsAffected() != 1 {
-		// TODO: handle no rows updated
-		// domain.Error{Code: domain.NoRowsUpdated}
-		return fmt.Errorf("%d tasks were updated", updatedCount)
+		return domain.Error{Code: domain.ErrStaleResult, Message: "result is stale"}
 	}
 	return nil
 }
@@ -171,11 +170,8 @@ func (gw *TaskGateway) MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, 
 	if err != nil {
 		return err
 	}
-	updatedCount := tag.RowsAffected()
 	if tag.RowsAffected() != 1 {
-		// TODO: handle no rows updated
-		// domain.Error{Code: domain.NoRowsUpdated}
-		return fmt.Errorf("%d tasks were updated", updatedCount)
+		return domain.Error{Code: domain.ErrStaleResult, Message: "result is stale"}
 	}
 	// TODO: check attempt, send to failure table and delete from task table?
 	return nil

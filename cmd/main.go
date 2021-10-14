@@ -23,6 +23,7 @@ const (
 	opsPortKey     = "OPS_PORT"
 	apiPortKey     = "API_PORT"
 	databaseDSNKey = "DB_DSN"
+	tokenKey       = "TOKEN"
 )
 
 func main() {
@@ -31,7 +32,9 @@ func main() {
 	log.Info("init_service")
 	apiPort := utils.GetEnv(apiPortKey, "8000")
 	opsPort := utils.GetEnv(opsPortKey, "8001")
+	token := utils.GetEnv(tokenKey, "token")
 	databaseDSN := utils.GetEnv(databaseDSNKey, "postgres://scheduler:scheduler@0.0.0.0:5432/scheduler")
+
 	gateway, err := database.NewTaskGateway(databaseDSN)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -39,12 +42,14 @@ func main() {
 		}).Error("database_connection_failure")
 		os.Exit(1)
 	}
+
 	scheduler := scheduler.New(
 		gateway,
 	)
 
 	apiService := apiserv.New(
 		scheduler,
+		apiserv.WithToken(token),
 		apiserv.WithPort(apiPort),
 	)
 	opsService := opsserv.New(

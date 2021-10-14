@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+const (
+	// ErrNoPendingTasks means, that there is no pending tasks right now.
+	ErrNoPendingTasks = "no_pending_tasks"
+	// ErrDuplicateTask means, that scheduler already has a task with that ID.
+	ErrDuplicateTask = "duplicate_task"
+	// ErrTaskNotFound means, that scheduler doesn't have a task with that ID.
+	ErrTaskNotFound = "task_not_found"
+	// ErrStaleResult means, that worker's result is stale.
+	ErrStaleResult = "stale_result"
+)
+
 // Error represents an error within the context of the service.
 type Error struct {
 	// Code is a machine-readable code.
@@ -17,6 +28,9 @@ type Error struct {
 
 // Error returns the string representation of the error message.
 func (e Error) Error() string {
+	if e.Message != "" {
+		return e.Message
+	}
 	if e.Inner != nil {
 		return fmt.Sprintf("%s %s: %v", e.Code, e.Message, e.Inner)
 	}
