@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type State string
@@ -15,15 +17,14 @@ const (
 )
 
 type Task struct {
-	ID        string                 `json:"id"`
-	ClaimID   string                 `json:"-"`
+	ID        uuid.UUID              `json:"id"`
+	ClaimID   uuid.UUID              `json:"claimId,omitempty"`
 	State     State                  `json:"state"`
 	ExecuteAt time.Time              `json:"executeAt"`
-	UpdatedAt time.Time              `json:"-"`
 	Deadline  time.Time              `json:"deadline"`
 	Payload   map[string]interface{} `json:"payload"`
+	Result    map[string]interface{} `json:"result,omitempty"`
 	Meta      map[string]interface{} `json:"-"`
-	Result    string                 `json:"result,omitempty"`
 }
 
 type Scheduler interface {

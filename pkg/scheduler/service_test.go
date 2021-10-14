@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"testing"
-
 	domain "github.com/freundallein/scheduler/pkg"
 	"github.com/freundallein/scheduler/pkg/mock"
+	"github.com/google/uuid"
+	"testing"
 )
 
 var errExpected = errors.New("expected error")
@@ -17,12 +17,12 @@ func TestSet(t *testing.T) {
 		name        string
 		expectedErr error
 		task        *domain.Task
-		expectedID  string
+		expectedID  uuid.UUID
 	}{
 		{
 			name:       "normal case",
 			task:       &domain.Task{},
-			expectedID: "1234567890",
+			expectedID: uuid.New(),
 		},
 		{
 			name:        "error case",
@@ -67,25 +67,26 @@ func TestSet(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+	expectedUUID := uuid.New()
 	tests := []struct {
 		name          string
 		expectedErr   error
 		task          *domain.Task
-		expectedID    string
+		expectedID    uuid.UUID
 		expectedState domain.State
 	}{
 		{
 			name: "normal case",
 			task: &domain.Task{
-				ID:    "1234567890",
+				ID:    expectedUUID,
 				State: domain.StatePending,
 			},
-			expectedID:    "1234567890",
+			expectedID:    expectedUUID,
 			expectedState: domain.StatePending,
 		},
 		{
 			name:        "error case",
-			expectedID:  "1234567890",
+			expectedID:  expectedUUID,
 			expectedErr: errExpected,
 		},
 	}
@@ -98,7 +99,7 @@ func TestGet(t *testing.T) {
 						if tt.expectedErr != nil {
 							return nil, tt.expectedErr
 						}
-						if id != tt.expectedID {
+						if id != tt.expectedID.String() {
 							return nil, fmt.Errorf("task not found")
 						}
 						return tt.task, nil
@@ -106,7 +107,7 @@ func TestGet(t *testing.T) {
 				},
 			)
 			ctx := context.Background()
-			observed, err := scheduler.Get(ctx, tt.expectedID)
+			observed, err := scheduler.Get(ctx, tt.expectedID.String())
 			if !errors.Is(err, tt.expectedErr) {
 				t.Errorf("Expected `%v`, got: `%v`", tt.expectedErr, err)
 			}

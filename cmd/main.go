@@ -10,20 +10,19 @@ import (
 	log "github.com/freundallein/scheduler/pkg/utils/logging"
 	"github.com/oklog/run"
 
-	domain "github.com/freundallein/scheduler/pkg"
 	"github.com/freundallein/scheduler/pkg/adapters/apiserv"
+	"github.com/freundallein/scheduler/pkg/adapters/database"
 
-	"github.com/freundallein/scheduler/pkg/mock"
 	"github.com/freundallein/scheduler/pkg/scheduler"
 	"github.com/freundallein/scheduler/pkg/utils"
 	"github.com/freundallein/scheduler/pkg/utils/opsserv"
 )
 
 const (
-	logLevelKey = "LOG_LEVEL"
-	opsPortKey  = "OPS_PORT"
-	apiPortKey  = "API_PORT"
-	pgDSNKey    = "PG_DSN"
+	logLevelKey    = "LOG_LEVEL"
+	opsPortKey     = "OPS_PORT"
+	apiPortKey     = "API_PORT"
+	databaseDSNKey = "DB_DSN"
 )
 
 func main() {
@@ -32,23 +31,16 @@ func main() {
 	log.Info("init_service")
 	apiPort := utils.GetEnv(apiPortKey, "8000")
 	opsPort := utils.GetEnv(opsPortKey, "8001")
-
+	databaseDSN := utils.GetEnv(databaseDSNKey, "postgres://scheduler:scheduler@0.0.0.0:5432/scheduler")
+	gateway, err := database.NewTaskGateway(databaseDSN)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("database_connection_failure")
+		os.Exit(1)
+	}
 	scheduler := scheduler.New(
-		&mock.Gateway{
-			CreateFn: func(task *domain.Task) (*domain.Task, error) {
-				return task, nil
-			},
-			FindByIDFn: func(id string) (*domain.Task, error) {
-				return &domain.Task{
-					ID:    "123",
-					State: domain.StatePending,
-					Meta: map[string]interface{}{
-						"attempt":     1,
-						"lastFailure": "no data",
-					},
-				}, nil
-			},
-		},
+		gateway,
 	)
 
 	apiService := apiserv.New(
@@ -107,7 +99,7 @@ func main() {
 		})
 	}
 
-	err := g.Run()
+	err = g.Run()
 	log.WithFields(log.Fields{
 		"err": err,
 	}).Info("service_stopped")

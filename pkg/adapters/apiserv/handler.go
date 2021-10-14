@@ -5,6 +5,7 @@ import (
 	"time"
 
 	domain "github.com/freundallein/scheduler/pkg"
+	"github.com/google/uuid"
 )
 
 type Scheduler struct {
@@ -16,15 +17,15 @@ type SetParams struct {
 }
 
 // Set accepts task that should be executed.
-// curl -H "Content-Type: application/json" -X POST -d \
-//  '{"jsonrpc": "2.0", "method": "Scheduler.Set", "params":[{"corrID":"123"}], "id": "1"}' \
-//  http://0.0.0.0:8000/rpc/v0
+// curl -H "Content-Type: application/json" -X POST -d '{"jsonrpc": "2.0", "method": "Scheduler.Set", "params":[{"corrID":"123"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Set(params *SetParams, result *map[string]interface{}) error {
 	payload := map[string]interface{}{
 		"corrID": params.CorrelationID,
 	}
 	task := &domain.Task{
+		ID:        uuid.New(),
 		ExecuteAt: time.Now(),
+		Deadline:  time.Now().Add(time.Hour),
 		Payload:   payload,
 	}
 	ctx := context.Background()
