@@ -17,7 +17,7 @@ type SetParams struct {
 }
 
 // Set accepts task that should be executed.
-// curl -H "Content-Type: application/json" -X POST -d '{"jsonrpc": "2.0", "method": "Scheduler.Set", "params":[{"corrID":"123"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
+// curl -X POST -d '{"jsonrpc": "2.0", "method": "Scheduler.Set", "params":[{"corrID":"123"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Set(params *SetParams, result *map[string]interface{}) error {
 	payload := map[string]interface{}{
 		"corrID": params.CorrelationID,
@@ -44,9 +44,7 @@ type GetParams struct {
 }
 
 // Get should be used for task state polling.
-// curl -H "Content-Type: application/json" -X POST -d \
-//  '{"jsonrpc": "2.0", "method": "Scheduler.Get", "params":[{"id":"123"}], "id": "1"}' \
-//  http://0.0.0.0:8000/rpc/v0
+// curl -X POST -d '{"jsonrpc": "2.0", "method": "Scheduler.Get", "params":[{"id":"bd954d5e-2b18-49a8-be81-2a53e25a9dc3"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Get(params *GetParams, result *map[string]interface{}) error {
 	ctx := context.Background()
 	task, err := handler.sch.Get(ctx, params.ID)
