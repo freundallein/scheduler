@@ -52,7 +52,7 @@ func New(scheduler domain.Scheduler, opts ...Option) *Service {
 			}
 			log.WithFields(log.Fields{
 				"auth": auth,
-			}).Debug("auth_header")
+			}).Debug("authentication_passed")
 			serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
 			err := rpcServer.ServeRequest(serverCodec)
 			if err != nil {

@@ -124,7 +124,7 @@ type FailParams struct {
 }
 
 // Fail marks task as failed.
-// curl -X POST -H 'Auth: token'	 -d '{"jsonrpc": "2.0", "method": "Scheduler.Fail", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"09cd1033-2e13-4ff4-9e7d-35f4c58359ef","reason": "there was no one at home"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
+// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Fail", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"09cd1033-2e13-4ff4-9e7d-35f4c58359ef","reason": "there was no one at home"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Fail(params *FailParams, result *map[string]interface{}) error {
 	if params.Reason == "" {
 		return fmt.Errorf("reason should not be empty")
