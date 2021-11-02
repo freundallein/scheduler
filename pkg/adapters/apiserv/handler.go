@@ -80,7 +80,7 @@ func (handler *Scheduler) Claim(params *ClaimParams, result *map[string]interfac
 	if err != nil {
 		return err
 	}
-	if amount >= 100 {
+	if amount >= 100 { // Hardcoded batch size
 		return fmt.Errorf("amount should be under 100")
 	}
 	tasks, err := handler.sch.Claim(ctx, amount)

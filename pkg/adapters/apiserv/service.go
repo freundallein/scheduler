@@ -26,8 +26,10 @@ func (c *HttpConn) Close() error                      { return nil }
 // Service used as an endpoint for operations management.
 type Service struct {
 	httpserv *http.Server
-	Port     string
-	Token    string
+	// HTTP Serve port
+	Port string
+	// Token is for request authorization
+	Token string
 }
 
 // New returns service instance

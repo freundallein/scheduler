@@ -1,0 +1,47 @@
+version: "3.9"
+
+networks:
+  local:
+    name: scheduler-network
+    driver: bridge
+
+volumes:
+  db-data:
+
+services:
+  scheduler:
+    image: freundallein/scheduler:latest
+    container_name: scheduler
+    restart: always
+    environment:
+      LOG_LEVEL: debug
+      PORT: 8000
+      OPS_PORT: 8001
+      DB_DSN: postgres://scheduler:scheduler@storage:5432/scheduler
+      TOKEN: secret-auth-token
+    networks:
+      - local
+    ports:
+      - 127.0.0.1:8000:8000
+    command: ['./bin/scheduler']
+    depends_on:
+      - storage
+    mem_limit: 50m
+    cpus: 2
+
+  storage:
+    image: postgres:12.2-alpine
+    container_name: pg-scheduler
+    restart: always
+    environment:
+      POSTGRES_USER: scheduler
+      POSTGRES_PASSWORD: scheduler
+      POSTGRES_DB: scheduler
+    networks:
+      - local
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    mem_limit: 512m
+    cpus: 2
