@@ -9,9 +9,9 @@ In that time, worker will claim this task, process it and push results back to t
 
 ## API
 
-### Public
+### Scheduler
 
-### Private
+### Worker
 
 ## Design
 
