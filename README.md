@@ -23,11 +23,27 @@ Service implements JSON-RPC 2.0 and contains 2 types of API:
 ...
 
 ## Deployment
+Service uses environment variables for configuration.
 
-...
+Most important parameter is `DB_DSN` - address of a postgres instance.
+
+You can see a full list of parameters in `Makefile`.
+
+###Docker
+`docker pull ghcr.io/freundallein/scheduler:latest`
+
+### Build 
+
+You can build scheduler via `Makefile`:
+```
+make build
+```
+Binary file will be delivered to `./bin/scheduler`.
 
 ## Example
-You can run example client via `Makefile`:
+For proper work you will need a client and a worker.
+
+You can run example with client and worker via `Makefile`:
 ```
 make run
 make example
@@ -40,11 +56,10 @@ Ensure, that you change variables in `Makefile`, especially `DB_DSN`
 ...
 
 ## TODO
-- [ ] add releases/packages
-- [ ] fill README.md
-- [ ] extend unittests
 - [ ] lint all comments
+- [ ] extend unittests
 - [ ] add metrics
 - [ ] add grafana dashboard
 - [ ] add prolong operation for worker
 - [ ] benchmarks
+- [ ] fill README.md

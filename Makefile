@@ -22,7 +22,11 @@ build:
 	CGO_ENABLED=0 go build -ldflags="-w -s" -a -o ./bin/scheduler ./cmd/
 
 build_docker:
-	docker build --tag=freundallein/scheduler:latest --file=./docker/Dockerfile .
+	docker build --tag=ghcr.io/freundallein/scheduler:latest --file=./docker/Dockerfile .
+
+deliver:
+	make build_docker
+	docker push ghcr.io/freundallein/scheduler:latest
 
 example:
 	go run docs/example/main.go
