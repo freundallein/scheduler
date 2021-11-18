@@ -16,10 +16,14 @@ Service implements JSON-RPC 2.0 and contains 2 types of API:
 [Do you want to know more?](https://github.com/freundallein/scheduler/blob/master/docs/api_v0.md)
 
 ## Design
+![Alt text](https://github.com/freundallein/scheduler/blob/master/docs/design.png)
 
 ## SLA
+
 ...
+
 ## Deployment
+
 ...
 
 ## Example
@@ -32,8 +36,11 @@ Ensure, that you change variables in `Makefile`, especially `DB_DSN`
 
 [Example code](https://github.com/freundallein/scheduler/blob/master/docs/example/main.go)
 ## Load test
+
 ...
+
 ## TODO
+- [ ] add releases/packages
 - [ ] fill README.md
 - [ ] extend unittests
 - [ ] lint all comments
