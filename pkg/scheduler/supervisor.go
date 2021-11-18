@@ -36,7 +36,7 @@ func (svc *Supervisor) DeleteStaleTasks(ctx context.Context, staleHours int) err
 			}
 			log.WithFields(log.Fields{
 				"rows": rows,
-			}).Info("supervisor_delete_stale_rows")
+			}).Debug("supervisor_delete_stale_rows")
 		}
 	}
 }

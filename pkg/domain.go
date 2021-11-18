@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,7 +43,7 @@ type Task struct {
 	// CreatedAt shows when task was created.
 	CreatedAt time.Time `json:"createdAt"`
 	// DoneAt shows when task was succeeded.
-	DoneAt time.Time `json:"doneAt"`
+	DoneAt sql.NullTime `json:"doneAt,omitempty"`
 }
 
 // Scheduler used for task planning and polling.
@@ -67,6 +68,7 @@ type Worker interface {
 type Supervisor interface {
 	// DeleteStaleTasks cleans storage from stale tasks.
 	DeleteStaleTasks(ctx context.Context, staleHours int) error
+	// TODO: delete or move tasks with N attempts
 }
 
 // Gateway describes database access to a task.

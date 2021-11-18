@@ -46,6 +46,7 @@ func (gw *TaskGateway) Create(ctx context.Context, task *domain.Task) (*domain.T
 		&task.Payload,
 		&task.Result,
 		&task.Meta,
+		&task.CreatedAt,
 	)
 	if err != nil {
 		if err.Error() == `ERROR: duplicate key value violates unique constraint "task_pkey" (SQLSTATE 23505)` {
@@ -71,6 +72,8 @@ func (gw *TaskGateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task
 		&task.Payload,
 		&task.Result,
 		&task.Meta,
+		&task.CreatedAt,
+		&task.DoneAt,
 	)
 	if err != nil {
 		if err.Error() == "no rows in result set" {
@@ -101,6 +104,7 @@ func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.
 			&task.Payload,
 			&task.Result,
 			&task.Meta,
+			&task.CreatedAt,
 		)
 		task.ExecuteAt = task.ExecuteAt.UTC()
 		task.Deadline = task.Deadline.UTC()
@@ -140,7 +144,6 @@ func (gw *TaskGateway) MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, 
 	if tag.RowsAffected() != 1 {
 		return domain.Error{Code: domain.ErrStaleResult, Message: "result is stale"}
 	}
-	// TODO: check attempt, send to failure table and delete from task table?
 	return nil
 }
 

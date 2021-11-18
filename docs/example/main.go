@@ -57,19 +57,22 @@ func main() {
 	token := utils.GetEnv(tokenKey, "token")
 
 	service := client.NewScheduler(
-		"0.0.0.0:8000",
+		"127.0.0.1:8000",
 		time.Second,
 		client.WithToken(token),
 	)
 	go worker()
 	uids := map[uuid.UUID]struct{}{}
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10; i++ {
 		uid, err := service.Set(time.Now(), time.Now().Add(time.Hour), map[string]interface{}{
 			"source": "example.com",
 			"type":   "parse",
 			"number": i,
 		})
 		if err != nil {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Error("scheduler_set_failed")
 			panic(err)
 		}
 		uids[*uid] = struct{}{}
@@ -81,6 +84,9 @@ func main() {
 		for uid := range uids {
 			task, err := service.Get(uid)
 			if err != nil {
+				log.WithFields(log.Fields{
+					"err": err,
+				}).Error("scheduler_get_failed")
 				panic(err)
 			}
 			if task.State == domain.StateSucceeded {

@@ -20,7 +20,7 @@ create table task (
     result JSONB not null default '{}',
     meta JSONB not null default '{}',
     created_at timestamp with time zone not null default current_timestamp,
-    done_at timestamp with time zone not null,
+    done_at timestamp with time zone,
 	primary key(id)
 ) with (
 	autovacuum_vacuum_threshold = 100,

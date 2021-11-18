@@ -18,8 +18,13 @@ test:
 tidy:
 	go mod tidy
 
-build:
+build: build_scheduler build_healthcheck
+
+build_scheduler:
 	CGO_ENABLED=0 go build -ldflags="-w -s" -a -o ./bin/scheduler ./cmd/
+
+build_healthcheck:
+	CGO_ENABLED=0 go build -ldflags="-w -s" -a -o ./bin/healthcheck ./cmd/healthcheck
 
 build_docker:
 	docker build --tag=ghcr.io/freundallein/scheduler:latest --file=./docker/Dockerfile .

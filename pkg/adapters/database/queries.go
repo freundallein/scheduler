@@ -6,11 +6,11 @@ const (
 		task(id, execute_at, deadline, payload, meta) 
 	values 
 		($1, $2, $3, $4, $5)
-	returning id, claim_id, state, execute_at, deadline, payload, result, meta;
+	returning id, claim_id, state, execute_at, deadline, payload, result, meta, task.created_at;
 `
 	findByID = `
 	select
-		id, claim_id, state, execute_at, deadline, payload, result, meta
+		id, claim_id, state, execute_at, deadline, payload, result, meta, task.created_at, task.done_at
 	from 
 		task 
 	where id=$1;
@@ -35,7 +35,16 @@ const (
 		claim_id = uuid_generate_v4()
 	from claimed_tasks
 	where task.id = claimed_tasks.id
-	returning task.*;
+	returning 
+		task.id, 
+		task.claim_id, 
+		task.state, 
+		task.execute_at, 
+		task.deadline, 
+		task.payload, 
+		task.result, 
+		task.meta,
+		task.created_at;
 `
 	markAsSucceeded = `
 	update task

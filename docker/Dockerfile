@@ -21,3 +21,5 @@ USER nobody
 COPY --from=base /etc/passwd /etc/passwd
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=base /opt/service/bin /bin
+
+HEALTHCHECK --interval=1s --timeout=1s --start-period=2s --retries=3 CMD [ "/bin/healthcheck" ]

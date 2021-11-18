@@ -10,7 +10,7 @@ volumes:
 
 services:
   scheduler:
-    image: freundallein/scheduler:latest
+    image: ghcr.io/freundallein/scheduler:latest
     container_name: scheduler
     restart: always
     environment:
@@ -19,6 +19,8 @@ services:
       OPS_PORT: 8001
       DB_DSN: postgres://scheduler:scheduler@storage:5432/scheduler
       TOKEN: secret-auth-token
+      WORKER_TOKEN: secret-worker-auth-token
+      STALE_HOURS: 24
     networks:
       - local
     ports:
@@ -26,8 +28,6 @@ services:
     command: ['./bin/scheduler']
     depends_on:
       - storage
-    mem_limit: 50m
-    cpus: 2
 
   storage:
     image: postgres:12.2-alpine
@@ -43,5 +43,3 @@ services:
       - 127.0.0.1:5432:5432
     volumes:
       - db-data:/var/lib/postgresql/data
-    mem_limit: 512m
-    cpus: 2
