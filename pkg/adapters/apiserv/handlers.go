@@ -75,7 +75,7 @@ type ClaimParams struct {
 }
 
 // Claim is for claiming one task or more for processing.
-// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Worker.Claim", "params":[{"amount":"3"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
+// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Worker.Claim", "params":[{"amount":"3"}], "id": "1"}' http://0.0.0.0:8000/worker/v0
 func (handler *Worker) Claim(params *ClaimParams, result *map[string]interface{}) error {
 	ctx := context.Background()
 	amount, err := strconv.Atoi(params.Amount)
@@ -104,7 +104,7 @@ type SucceedParams struct {
 }
 
 // Succeed marks task as done.
-// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Worker.Succeed", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"f5dca270-be27-45aa-ae3a-6e5a600dd965","result": {"data": "job is done"}}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
+// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Worker.Succeed", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"f5dca270-be27-45aa-ae3a-6e5a600dd965","result": {"data": "job is done"}}], "id": "1"}' http://0.0.0.0:8000/worker/v0
 func (handler *Worker) Succeed(params *SucceedParams, result *map[string]interface{}) error {
 	ctx := context.Background()
 
@@ -126,7 +126,7 @@ type FailParams struct {
 }
 
 // Fail marks task as failed.
-// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Worker.Fail", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"032b8d9e-8f73-4a4e-a850-e2ed716099bf","reason": "there was no one at home"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
+// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Worker.Fail", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"032b8d9e-8f73-4a4e-a850-e2ed716099bf","reason": "never give up"}], "id": "1"}' http://0.0.0.0:8000/worker/v0
 func (handler *Worker) Fail(params *FailParams, result *map[string]interface{}) error {
 	if params.Reason == "" {
 		return fmt.Errorf("reason should not be empty")
