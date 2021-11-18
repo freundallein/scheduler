@@ -22,3 +22,5 @@ build:
 build_docker:
 	docker build --tag=freundallein/scheduler:latest --file=./docker/Dockerfile .
 
+example:
+	go run docs/example/main.go

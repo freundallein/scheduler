@@ -10,8 +10,16 @@ func WithPort(port string) Option {
 	}
 }
 
+// WithToken provides scheduler API access token.
 func WithToken(token string) Option {
 	return func(s *Service) {
 		s.Token = token
+	}
+}
+
+// WithWorkerToken provides worker API access token.
+func WithWorkerToken(token string) Option {
+	return func(s *Service) {
+		s.WorkerToken = token
 	}
 }

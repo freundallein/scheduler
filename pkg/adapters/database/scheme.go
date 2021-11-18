@@ -33,7 +33,7 @@ create table if not exists task (
 	autovacuum_vacuum_cost_limit = 200
 );
 
-create index task_state on task (execute_at, id) where state <> 'succeeded';
+create index if not exists task_state on task (execute_at, id) where state <> 'succeeded';
 
 -- TODO: add failure table
 `

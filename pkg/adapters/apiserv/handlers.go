@@ -17,24 +17,21 @@ type Scheduler struct {
 
 // SetParams describes input params for Set procedure.
 type SetParams struct {
-	ID            uuid.UUID `json:"id"`
-	CorrelationID string    `json:"corrID"`
-	ExecuteAt     time.Time `json:"executeAt"`
-	Deadline      time.Time `json:"deadline"`
-	Payload       map[string]interface{}
+	ID        uuid.UUID `json:"id"`
+	ExecuteAt time.Time `json:"executeAt"`
+	Deadline  time.Time `json:"deadline"`
+	Payload   map[string]interface{}
 }
 
 // Set accepts task that should be executed.
-// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Set", "params":[{"corrID":"123","id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3", "executeAt":"2021-10-14T18:32:11+03:00","deadline":"2021-11-14T18:32:11+03:00","payload": {"type":"parse", "source": "example.com"}}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
+// curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Set", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3", "executeAt":"2021-10-14T18:32:11+03:00","deadline":"2021-11-14T18:32:11+03:00","payload": {"type":"parse", "source": "example.com"}}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Set(params *SetParams, result *map[string]interface{}) error {
 	task := &domain.Task{
 		ID:        params.ID,
 		ExecuteAt: params.ExecuteAt.UTC(),
 		Deadline:  params.Deadline.UTC(),
 		Payload:   params.Payload,
-		Meta: map[string]interface{}{
-			"corrID": params.CorrelationID,
-		},
+		Meta:      map[string]interface{}{},
 	}
 	ctx := context.Background()
 	task, err := handler.svc.Set(ctx, task)
@@ -66,7 +63,6 @@ func (handler *Scheduler) Get(params *GetParams, result *map[string]interface{})
 	}
 	return nil
 }
-
 
 // Worker is a JSON RPC handler.
 type Worker struct {

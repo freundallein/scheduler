@@ -22,10 +22,11 @@ In that time, worker will claim this task, process it and push results back to t
 ## Load test
 
 ## TODO
-- [ ] fill README.md
 - [ ] add client library
 - [ ] add worker example
 - [ ] add supervisor routine to delete old tasks or to manage partitions
+- [ ] fill README.md
+- [ ] extend unittests
 - [ ] add prolong operation for worker
 - [ ] add metrics
 - [ ] add grafana dashboard

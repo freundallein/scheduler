@@ -24,6 +24,7 @@ const (
 	apiPortKey     = "API_PORT"
 	databaseDSNKey = "DB_DSN"
 	tokenKey       = "TOKEN"
+	workerTokenKey = "WORKER_TOKEN"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 	apiPort := utils.GetEnv(apiPortKey, "8000")
 	opsPort := utils.GetEnv(opsPortKey, "8001")
 	token := utils.GetEnv(tokenKey, "token")
+	workerToken := utils.GetEnv(workerTokenKey, "token")
 	databaseDSN := utils.GetEnv(databaseDSNKey, "postgres://scheduler:scheduler@0.0.0.0:5432/scheduler")
 
 	gateway, err := database.NewTaskGateway(databaseDSN)
@@ -50,6 +52,7 @@ func main() {
 	apiService := apiserv.New(
 		service,
 		apiserv.WithToken(token),
+		apiserv.WithWorkerToken(workerToken),
 		apiserv.WithPort(apiPort),
 	)
 	opsService := opsserv.New(
