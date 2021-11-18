@@ -22,8 +22,6 @@ In that time, worker will claim this task, process it and push results back to t
 ## Load test
 
 ## TODO
-- [ ] db scheme creation on startup
-- [x] separate worker and scheduler interfaces
 - [ ] fill README.md
 - [ ] add client library
 - [ ] add worker example

@@ -27,6 +27,10 @@ func NewTaskGateway(dsn string) (domain.Gateway, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = pool.Exec(ctx, initialScheme)
+	if err != nil {
+		return nil, err
+	}
 	return &TaskGateway{pool: pool}, nil
 }
 
@@ -49,6 +53,8 @@ func (gw *TaskGateway) Create(ctx context.Context, task *domain.Task) (*domain.T
 		}
 		return nil, err
 	}
+	task.ExecuteAt = task.ExecuteAt.UTC()
+	task.Deadline = task.Deadline.UTC()
 	return task, nil
 }
 
@@ -72,6 +78,8 @@ func (gw *TaskGateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task
 		}
 		return nil, err
 	}
+	task.ExecuteAt = task.ExecuteAt.UTC()
+	task.Deadline = task.Deadline.UTC()
 	return task, nil
 }
 
@@ -94,6 +102,8 @@ func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.
 			&task.Result,
 			&task.Meta,
 		)
+		task.ExecuteAt = task.ExecuteAt.UTC()
+		task.Deadline = task.Deadline.UTC()
 		if err != nil {
 			return nil, err
 		}

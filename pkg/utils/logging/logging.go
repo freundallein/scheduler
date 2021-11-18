@@ -16,7 +16,7 @@ var logger = logrus.NewEntry(logrus.New())
 type Fields logrus.Fields
 
 // Init used for a logger initialisation.
-func Init(module, logLevel string) {
+func Init(service, logLevel string) {
 	customFormatter := &logrus.TextFormatter{}
 	customFormatter.TimestampFormat = timeFormat
 	customFormatter.FullTimestamp = true
@@ -31,7 +31,7 @@ func Init(module, logLevel string) {
 		logrus.SetLevel(logrus.InfoLevel)
 	}
 	logger = logrus.WithFields(logrus.Fields{
-		"module": module,
+		"service": service,
 	})
 	logger.Debug("init_logger")
 }

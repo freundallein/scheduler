@@ -26,7 +26,7 @@ type Task struct {
 	// ID is a task identifier.
 	ID uuid.UUID `json:"id"`
 	// ClaimID used for worker identification and result linearisation.
-	ClaimID uuid.UUID `json:"claimId,omitempty"`
+	ClaimID *uuid.UUID `json:"claimId,omitempty"`
 	// State describes current task's state.
 	State State `json:"state"`
 	// ExecuteAt allows scheduler to define when to execute a task.

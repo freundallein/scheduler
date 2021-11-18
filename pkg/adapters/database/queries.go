@@ -23,6 +23,7 @@ const (
 		where 
 			state <> $2 
 			and execute_at <= localtimestamp
+			--and deadline >= localtimestamp
 		order by execute_at
 		limit $3
 		for update skip locked

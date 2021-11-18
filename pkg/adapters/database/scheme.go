@@ -1,7 +1,6 @@
 package database
 
-const scheme = `
--- Initial migration
+const initialScheme = `
 create extension if not exists "uuid-ossp";
 
 do $$
@@ -13,7 +12,7 @@ begin
 			'succeeded',
 			'failed'
 		);
-    end id;
+    end if;
 end
 $$;
 

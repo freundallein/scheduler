@@ -39,7 +39,7 @@ func main() {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
-		}).Error("database_connection_failure")
+		}).Error("db_gateway_creation_failure")
 		os.Exit(1)
 	}
 
