@@ -16,7 +16,7 @@ import (
 type rpcResponse struct {
 	// ID is current response ID.
 	// Should be equals request ID.
-	ID    string `json:"id"`
+	ID string `json:"id"`
 	// Error shows error message
 	Error string `json:"error,omitempty"`
 }

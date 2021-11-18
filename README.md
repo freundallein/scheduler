@@ -62,7 +62,6 @@ Ensure, that you change variables in `Makefile`, especially `DB_DSN`
 
 ## TODO
 - [ ] extend unittests
-- [ ] add metrics
 - [ ] add grafana dashboard
 - [ ] add prolong operation for worker
 - [ ] benchmarks

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	opsPortKey     = "OPS_PORT"
+	opsPortKey = "OPS_PORT"
 )
 
 func main() {

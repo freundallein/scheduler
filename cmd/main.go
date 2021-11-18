@@ -5,6 +5,8 @@ import (
 	"fmt"
 	log "github.com/freundallein/scheduler/pkg/utils/logging"
 	"github.com/oklog/run"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,6 +27,8 @@ const (
 	tokenKey       = "TOKEN"
 	workerTokenKey = "WORKER_TOKEN"
 	staleHoursKey  = "STALE_HOURS"
+
+	prometheusNamespace = "scheduler"
 )
 
 func main() {
@@ -52,11 +56,54 @@ func main() {
 		os.Exit(1)
 	}
 
+	tasksEnqueued := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: prometheusNamespace,
+		Subsystem: "scheduler",
+		Name:      "tasks_enqueued_total",
+		Help:      "The total number of enqueued tasks.",
+	})
+	taskRequestPolled := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: prometheusNamespace,
+		Subsystem: "scheduler",
+		Name:      "tasks_polled_total",
+		Help:      "The total number of task polling requests.",
+	})
+	tasksClaimed := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: prometheusNamespace,
+		Subsystem: "worker",
+		Name:      "tasks_claimed_total",
+		Help:      "The total number of claimed tasks.",
+	})
+	tasksSucceeded := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: prometheusNamespace,
+		Subsystem: "worker",
+		Name:      "tasks_succeeded_total",
+		Help:      "The total number of succeeded tasks.",
+	})
+	tasksFailed := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: prometheusNamespace,
+		Subsystem: "worker",
+		Name:      "tasks_failed_total",
+		Help:      "The total number of failed tasks.",
+	})
 	service := scheduler.New(
 		gateway,
+		scheduler.WithTasksEnqueued(tasksEnqueued),
+		scheduler.WithTaskRequestPolled(taskRequestPolled),
+		scheduler.WithTasksClaimed(tasksClaimed),
+		scheduler.WithTasksSucceeded(tasksSucceeded),
+		scheduler.WithTasksFailed(tasksFailed),
 	)
+
+	staleTasksDeleted := promauto.NewCounter(prometheus.CounterOpts{
+		Namespace: prometheusNamespace,
+		Subsystem: "supervisor",
+		Name:      "stale_tasks_deleted",
+		Help:      "The total number of deleted stale tasks.",
+	})
 	supervisor := scheduler.NewSupervisor(
 		gateway,
+		scheduler.WithStaleTasksDeleted(staleTasksDeleted),
 	)
 
 	apiService := apiserv.New(
