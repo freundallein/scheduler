@@ -12,8 +12,8 @@ type Service struct {
 	taskGateway domain.Gateway
 }
 
-// New returns domain.Scheduler implementation.
-func New(taskGateway domain.Gateway) domain.Scheduler {
+// New returns domain.Scheduler & domain.Worker implementation.
+func New(taskGateway domain.Gateway) *Service {
 	return &Service{
 		taskGateway: taskGateway,
 	}

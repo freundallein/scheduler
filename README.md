@@ -23,7 +23,7 @@ In that time, worker will claim this task, process it and push results back to t
 
 ## TODO
 - [ ] db scheme creation on startup
-- [ ] separate worker and scheduler interfaces
+- [x] separate worker and scheduler interfaces
 - [ ] fill README.md
 - [ ] add client library
 - [ ] add worker example

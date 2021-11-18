@@ -43,12 +43,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	scheduler := scheduler.New(
+	service := scheduler.New(
 		gateway,
 	)
 
 	apiService := apiserv.New(
-		scheduler,
+		service,
 		apiserv.WithToken(token),
 		apiserv.WithPort(apiPort),
 	)

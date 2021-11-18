@@ -12,7 +12,7 @@ import (
 
 // Scheduler is a JSON RPC handler.
 type Scheduler struct {
-	sch domain.Scheduler
+	svc domain.Scheduler
 }
 
 // SetParams describes input params for Set procedure.
@@ -37,7 +37,7 @@ func (handler *Scheduler) Set(params *SetParams, result *map[string]interface{})
 		},
 	}
 	ctx := context.Background()
-	task, err := handler.sch.Set(ctx, task)
+	task, err := handler.svc.Set(ctx, task)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ type GetParams struct {
 // curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Get", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
 func (handler *Scheduler) Get(params *GetParams, result *map[string]interface{}) error {
 	ctx := context.Background()
-	task, err := handler.sch.Get(ctx, params.ID)
+	task, err := handler.svc.Get(ctx, params.ID)
 	if err != nil {
 		return err
 	}
@@ -67,6 +67,12 @@ func (handler *Scheduler) Get(params *GetParams, result *map[string]interface{})
 	return nil
 }
 
+
+// Worker is a JSON RPC handler.
+type Worker struct {
+	svc domain.Worker
+}
+
 // ClaimParams describes input params for Claim procedure.
 type ClaimParams struct {
 	Amount string `json:"amount"`
@@ -74,7 +80,7 @@ type ClaimParams struct {
 
 // Claim is for claiming one task or more for processing.
 // curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Claim", "params":[{"amount":"3"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
-func (handler *Scheduler) Claim(params *ClaimParams, result *map[string]interface{}) error {
+func (handler *Worker) Claim(params *ClaimParams, result *map[string]interface{}) error {
 	ctx := context.Background()
 	amount, err := strconv.Atoi(params.Amount)
 	if err != nil {
@@ -83,7 +89,7 @@ func (handler *Scheduler) Claim(params *ClaimParams, result *map[string]interfac
 	if amount >= 100 { // Hardcoded batch size
 		return fmt.Errorf("amount should be under 100")
 	}
-	tasks, err := handler.sch.Claim(ctx, amount)
+	tasks, err := handler.svc.Claim(ctx, amount)
 	if err != nil {
 		return err
 	}
@@ -103,10 +109,10 @@ type SucceedParams struct {
 
 // Succeed marks task as done.
 // curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Succeed", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"f5dca270-be27-45aa-ae3a-6e5a600dd965","result": {"data": "job is done"}}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
-func (handler *Scheduler) Succeed(params *SucceedParams, result *map[string]interface{}) error {
+func (handler *Worker) Succeed(params *SucceedParams, result *map[string]interface{}) error {
 	ctx := context.Background()
 
-	err := handler.sch.Succeed(ctx, params.ID, params.ClaimID, params.Result)
+	err := handler.svc.Succeed(ctx, params.ID, params.ClaimID, params.Result)
 	if err != nil {
 		return err
 	}
@@ -125,12 +131,12 @@ type FailParams struct {
 
 // Fail marks task as failed.
 // curl -X POST -H 'Auth: token' -d '{"jsonrpc": "2.0", "method": "Scheduler.Fail", "params":[{"id":"bd954d5e-2b11-49a8-be81-2a53e25a9dc3","claimID":"09cd1033-2e13-4ff4-9e7d-35f4c58359ef","reason": "there was no one at home"}], "id": "1"}' http://0.0.0.0:8000/rpc/v0
-func (handler *Scheduler) Fail(params *FailParams, result *map[string]interface{}) error {
+func (handler *Worker) Fail(params *FailParams, result *map[string]interface{}) error {
 	if params.Reason == "" {
 		return fmt.Errorf("reason should not be empty")
 	}
 	ctx := context.Background()
-	err := handler.sch.Fail(ctx, params.ID, params.ClaimID, params.Reason)
+	err := handler.svc.Fail(ctx, params.ID, params.ClaimID, params.Reason)
 	if err != nil {
 		return err
 	}

@@ -3,17 +3,17 @@ package apiserv
 import (
 	"context"
 	"fmt"
+	"github.com/freundallein/scheduler/pkg/scheduler"
 	"io"
 	"net/http"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"time"
 
-	domain "github.com/freundallein/scheduler/pkg"
 	log "github.com/freundallein/scheduler/pkg/utils/logging"
 )
 
-// adapt HTTP connection to ReadWriteCloser
+// HttpConn adapts HTTP connection to ReadWriteCloser
 type HttpConn struct {
 	in  io.Reader
 	out io.Writer
@@ -30,17 +30,22 @@ type Service struct {
 	Port string
 	// Token is for request authorization
 	Token string
+	// WorkerToken is for worker's request authorization
+	WorkerToken string
 }
 
 // New returns service instance
-func New(scheduler domain.Scheduler, opts ...Option) *Service {
+func New(service *scheduler.Service, opts ...Option) *Service {
 	svc := &Service{}
 	for _, opt := range opts {
 		opt(svc)
 	}
 	rpcServer := rpc.NewServer()
 	rpcServer.Register(&Scheduler{
-		sch: scheduler,
+		svc: service,
+	})
+	rpcServer.Register(&Worker{
+		svc: service,
 	})
 	mux := http.NewServeMux()
 	mux.HandleFunc(
@@ -48,6 +53,28 @@ func New(scheduler domain.Scheduler, opts ...Option) *Service {
 		func(w http.ResponseWriter, r *http.Request) {
 			auth := r.Header.Get("Auth")
 			if svc.Token != "" && auth != svc.Token {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("401 - not authorized"))
+				return
+			}
+			log.WithFields(log.Fields{
+				"auth": auth,
+			}).Debug("authentication_passed")
+			serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
+			err := rpcServer.ServeRequest(serverCodec)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err": err,
+				}).Error("err_while_serving_json_rpc")
+				return
+			}
+		},
+	)
+	mux.HandleFunc(
+		"/worker/v0",
+		func(w http.ResponseWriter, r *http.Request) {
+			auth := r.Header.Get("Auth")
+			if svc.WorkerToken != "" && auth != svc.WorkerToken {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("401 - not authorized"))
 				return

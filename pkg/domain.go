@@ -13,9 +13,9 @@ type State string
 const (
 	// StatePending means, that task was created and is waiting for processing.
 	StatePending State = "pending"
-	// StateProcessing measn, that a tasj is processing by a worker.
+	// StateProcessing means, that task is processing by a worker.
 	StateProcessing State = "processing"
-	// StateSucceeded means, that a task was successfully processed.
+	// StateSucceeded means, that task was successfully processed.
 	StateSucceeded State = "succeeded"
 	// StateFailed means, that we got failure during processing.
 	StateFailed State = "failed"
@@ -41,15 +41,16 @@ type Task struct {
 	Meta map[string]interface{} `json:"-"`
 }
 
-// Scheduler used for task processing.
+// Scheduler used for task planning and polling.
 type Scheduler interface {
-	// Public interface
 	// Set allows to enqueue task.
 	Set(ctx context.Context, task *Task) (*Task, error)
 	// Get allows to poll a task state.
 	Get(ctx context.Context, id uuid.UUID) (*Task, error)
+}
 
-	// Private interface
+// Worker used for task processing.
+type Worker interface {
 	// Claim gives a task to worker.
 	Claim(ctx context.Context, amount int) ([]*Task, error)
 	// Succeed marks a task as done.
