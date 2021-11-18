@@ -41,10 +41,6 @@ type Task struct {
 	Meta map[string]interface{} `json:"-"`
 }
 
-func (t *Task) FillFromMap(src map[string]interface{}) error {
-	return nil
-}
-
 // Scheduler used for task planning and polling.
 type Scheduler interface {
 	// Set allows to enqueue task.

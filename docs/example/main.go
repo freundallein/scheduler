@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	domain "github.com/freundallein/scheduler/pkg"
 	"github.com/freundallein/scheduler/pkg/client"
 	"github.com/freundallein/scheduler/pkg/utils"
@@ -13,11 +12,42 @@ import (
 const (
 	logLevelKey    = "LOG_LEVEL"
 	tokenKey       = "TOKEN"
-	workerTokenKey = "WRK_TOKEN"
+	workerTokenKey = "WORKER_TOKEN"
 )
 
 func worker() {
-	//worker := client.NewWorker("0.0.0.0:8000", "token", time.Second)
+	token := utils.GetEnv(workerTokenKey, "token")
+	worker := client.NewWorker(
+		"0.0.0.0:8000",
+		time.Second,
+		client.WithWorkerToken(token),
+	)
+	for {
+		tasks, err := worker.Claim(2)
+		if err != nil {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Error("worker_claim_error")
+		}
+		for idx, task := range tasks {
+			payload := task.Payload
+			log.WithFields(log.Fields{
+				"uid":     task.ID,
+				"payload": payload,
+			}).Error("worker_processing_task")
+			//err := worker.Fail(task.ID, *task.ClaimID, "nobody is at home")
+			err := worker.Succeed(task.ID, *task.ClaimID, map[string]interface{}{
+				"idx": idx,
+			})
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err": err,
+				}).Error("worker_fail_error")
+			}
+		}
+
+		time.Sleep(time.Second)
+	}
 }
 
 func main() {
@@ -25,7 +55,6 @@ func main() {
 	log.Init("example", logLevel)
 	log.Info("init_service")
 	token := utils.GetEnv(tokenKey, "token")
-	//workerToken := utils.GetEnv(workerTokenKey, "token")
 
 	service := client.NewScheduler(
 		"0.0.0.0:8000",
@@ -44,6 +73,9 @@ func main() {
 			panic(err)
 		}
 		uids[*uid] = struct{}{}
+		log.WithFields(log.Fields{
+			"uid": uid,
+		}).Info("task_was_set")
 	}
 	for len(uids) > 0 {
 		for uid := range uids {
@@ -52,10 +84,17 @@ func main() {
 				panic(err)
 			}
 			if task.State == domain.StateSucceeded {
-				fmt.Println(uid, task.State, task.Result)
+				log.WithFields(log.Fields{
+					"uid":    uid,
+					"state":  task.State,
+					"result": task.Result,
+				}).Info("task_was_succeeded")
 				delete(uids, uid)
 			} else {
-				fmt.Println(uid, task.State)
+				log.WithFields(log.Fields{
+					"uid":   uid,
+					"state": task.State,
+				}).Info("task_is_processing")
 			}
 			time.Sleep(time.Second)
 		}

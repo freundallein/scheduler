@@ -86,7 +86,7 @@ func (gw *TaskGateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task
 // ClaimPending locks and returns pending (or next-attempt failed) task.
 func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.Task, error) {
 	tasks := make([]*domain.Task, 0)
-	rows, err := gw.pool.Query(ctx, claimPending, domain.StatePending, domain.StateProcessing, amount)
+	rows, err := gw.pool.Query(ctx, claimPending, domain.StateProcessing, domain.StateSucceeded, amount)
 	if err != nil {
 		return nil, err
 	}
