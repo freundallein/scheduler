@@ -29,7 +29,7 @@ Most important parameter is `DB_DSN` - address of a postgres instance.
 
 You can see a full list of parameters in `Makefile`.
 
-###Docker
+### Docker
 To get image run  
 `docker pull ghcr.io/freundallein/scheduler:latest`
 
