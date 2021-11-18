@@ -14,16 +14,21 @@ import (
 )
 
 type rpcResponse struct {
+	// ID is current response ID.
+	// Should be equals request ID.
 	ID    string `json:"id"`
+	// Error shows error message
 	Error string `json:"error,omitempty"`
 }
 
+// Scheduler implements client for a public interface domain.Scheduler.
 type Scheduler struct {
 	url         string
 	accessToken string
 	httpcli     *http.Client
 }
 
+// NewScheduler returns an instance of Scheduler.
 func NewScheduler(address string, timeout time.Duration, opts ...SchedulerOption) *Scheduler {
 	client := &http.Client{
 		Timeout: timeout,
@@ -71,6 +76,7 @@ type setResponse struct {
 	Result map[string]interface{} `json:"result"`
 }
 
+// Set allows to enqueue task.
 func (s *Scheduler) Set(executeAt, deadline time.Time, payload map[string]interface{}) (*uuid.UUID, error) {
 	taskID := uuid.New()
 	request := map[string]interface{}{
@@ -106,6 +112,7 @@ type getResponse struct {
 	} `json:"result"`
 }
 
+// Get allows to poll a task state.
 func (s *Scheduler) Get(id uuid.UUID) (*domain.Task, error) {
 	request := map[string]interface{}{
 		"jsonrpc": "2.0",
@@ -129,12 +136,14 @@ func (s *Scheduler) Get(id uuid.UUID) (*domain.Task, error) {
 	return response.Result.Task, nil
 }
 
+// Worker implements client for a private interface domain.Worker.
 type Worker struct {
 	url         string
 	accessToken string
 	httpcli     *http.Client
 }
 
+// NewWorker returns an instance of Worker.
 func NewWorker(address string, timeout time.Duration, opts ...WorkerOption) *Worker {
 	client := &http.Client{
 		Timeout: timeout,

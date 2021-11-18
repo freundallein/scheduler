@@ -42,7 +42,8 @@ const (
 	set 
 		state = $1,
 		claim_id = null,
-		result = $4
+		result = $4,
+		done_at = current_timestamp
 	where 
 		id = $2
 		and claim_id = $3;
@@ -61,6 +62,6 @@ const (
 	delete from 
 		task
 	where
-		deadline < current_timestamp - $1 * '1 minute'::interval;
+		state = 'succeeded' and done_at < current_timestamp - $1 * '1 hour'::interval;
 `
 )

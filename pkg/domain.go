@@ -39,6 +39,10 @@ type Task struct {
 	Result map[string]interface{} `json:"result,omitempty"`
 	// Meta used for service information.
 	Meta map[string]interface{} `json:"-"`
+	// CreatedAt shows when task was created.
+	CreatedAt time.Time `json:"createdAt"`
+	// DoneAt shows when task was succeeded.
+	DoneAt time.Time `json:"doneAt"`
 }
 
 // Scheduler used for task planning and polling.

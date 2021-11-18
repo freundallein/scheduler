@@ -51,12 +51,12 @@ make example
 Ensure, that you change variables in `Makefile`, especially `DB_DSN`
 
 [Example code](https://github.com/freundallein/scheduler/blob/master/docs/example/main.go)
+
 ## Load test
 
 ...
 
 ## TODO
-- [ ] lint all comments
 - [ ] extend unittests
 - [ ] add metrics
 - [ ] add grafana dashboard

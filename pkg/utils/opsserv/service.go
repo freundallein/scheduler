@@ -16,7 +16,7 @@ type Service struct {
 	Port     string
 }
 
-// New returns service instance
+// New returns service instance.
 func New(opts ...Option) *Service {
 	svc := &Service{}
 	for _, opt := range opts {

@@ -9,11 +9,12 @@ import (
 
 // Gateway mocks domain.Gateway.
 type Gateway struct {
-	CreateFn          func(task *domain.Task) (*domain.Task, error)
-	FindByIDFn        func(id uuid.UUID) (*domain.Task, error)
-	ClaimPendingFn    func(amount int) ([]*domain.Task, error)
-	MarkAsSucceededFn func(id, claimID uuid.UUID, result map[string]interface{}) error
-	MarkAsFailedFn    func(id, claimID uuid.UUID, reason string) error
+	CreateFn           func(task *domain.Task) (*domain.Task, error)
+	FindByIDFn         func(id uuid.UUID) (*domain.Task, error)
+	ClaimPendingFn     func(amount int) ([]*domain.Task, error)
+	MarkAsSucceededFn  func(id, claimID uuid.UUID, result map[string]interface{}) error
+	MarkAsFailedFn     func(id, claimID uuid.UUID, reason string) error
+	DeleteStaleTasksFn func(staleHours int) (int64, error)
 }
 
 // Create makes record with new task.
@@ -54,4 +55,12 @@ func (m *Gateway) MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, reaso
 		panic("Gateway.MarkAsFailedFn is not implemented")
 	}
 	return m.MarkAsFailedFn(id, claimID, reason)
+}
+
+// DeleteStaleTasks removes stale tasks.
+func (m *Gateway) DeleteStaleTasks(ctx context.Context, staleHours int) (int64, error) {
+	if m.DeleteStaleTasksFn == nil {
+		panic("Gateway.DeleteStaleTasksFn is not implemented")
+	}
+	return m.DeleteStaleTasksFn(staleHours)
 }
