@@ -143,3 +143,12 @@ func (gw *TaskGateway) MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, 
 	// TODO: check attempt, send to failure table and delete from task table?
 	return nil
 }
+
+// DeleteStaleTasks removes stale tasks.
+func (gw *TaskGateway) DeleteStaleTasks(ctx context.Context, staleHours int) (int64, error) {
+	tag, err := gw.pool.Exec(ctx, deleteStaleTasks, staleHours)
+	if err != nil {
+		return 0, err
+	}
+	return tag.RowsAffected(), nil
+}

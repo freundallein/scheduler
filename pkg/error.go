@@ -38,7 +38,7 @@ func (e Error) Error() string {
 }
 
 // Unwrap returns an inner error if any.
-// It allows to use errors.Is() with eth.Error type.
+// It allows using errors.Is() with eth.Error type.
 func (e Error) Unwrap() error {
 	return e.Inner
 }

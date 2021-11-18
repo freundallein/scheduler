@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	log "github.com/freundallein/scheduler/pkg/utils/logging"
+	"github.com/oklog/run"
 	"os"
 	"os/signal"
 	"syscall"
-
-	log "github.com/freundallein/scheduler/pkg/utils/logging"
-	"github.com/oklog/run"
 
 	"github.com/freundallein/scheduler/pkg/adapters/apiserv"
 	"github.com/freundallein/scheduler/pkg/adapters/database"
@@ -25,6 +24,7 @@ const (
 	databaseDSNKey = "DB_DSN"
 	tokenKey       = "TOKEN"
 	workerTokenKey = "WORKER_TOKEN"
+	staleHoursKey  = "STALE_HOURS"
 )
 
 func main() {
@@ -35,6 +35,13 @@ func main() {
 	opsPort := utils.GetEnv(opsPortKey, "8001")
 	token := utils.GetEnv(tokenKey, "token")
 	workerToken := utils.GetEnv(workerTokenKey, "token")
+	staleHours, err := utils.GetIntEnv(staleHoursKey, 24*7)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Error("stale_period_env_failure")
+	}
+
 	databaseDSN := utils.GetEnv(databaseDSNKey, "postgres://scheduler:scheduler@0.0.0.0:5432/scheduler")
 
 	gateway, err := database.NewTaskGateway(databaseDSN)
@@ -46,6 +53,9 @@ func main() {
 	}
 
 	service := scheduler.New(
+		gateway,
+	)
+	supervisor := scheduler.NewSupervisor(
 		gateway,
 	)
 
@@ -104,6 +114,15 @@ func main() {
 					"err": err,
 				}).Info("api_svc_shutdown")
 			}
+		})
+	}
+	{
+		g.Add(func() error {
+			return supervisor.DeleteStaleTasks(ctx, staleHours)
+		}, func(err error) {
+			log.WithFields(log.Fields{
+				"err": err,
+			}).Info("supervisor_interrupted")
 		})
 	}
 

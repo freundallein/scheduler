@@ -22,8 +22,8 @@ const (
 		from task 
 		where 
 			state <> $2 
-			and execute_at <= localtimestamp
-			--and deadline >= localtimestamp
+			and execute_at <= current_timestamp
+			--and deadline >= current_timestamp
 		order by execute_at
 		limit $3
 		for update skip locked
@@ -31,7 +31,7 @@ const (
 	update task 
 	set 
 		state = $1, 
-		execute_at = localtimestamp + interval '1 minute',
+		execute_at = current_timestamp + interval '1 minute',
 		claim_id = uuid_generate_v4()
 	from claimed_tasks
 	where task.id = claimed_tasks.id
@@ -56,5 +56,11 @@ const (
 	where 
 		id = $2
 		and claim_id = $3;
+`
+	deleteStaleTasks = `
+	delete from 
+		task
+	where
+		deadline < current_timestamp - $1 * '1 minute'::interval;
 `
 )

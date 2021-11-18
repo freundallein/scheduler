@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Service implements a scheduler.
+// Service implements a domain.Scheduler and domain.Worker.
 type Service struct {
 	taskGateway domain.Gateway
 }

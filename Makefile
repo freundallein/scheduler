@@ -4,6 +4,7 @@ export OPS_PORT=8001
 export DB_DSN=postgres://scheduler:scheduler@192.168.64.6:5432/scheduler
 export TOKEN=token
 export WORKER_TOKEN=workertoken
+export STALE_HOURS=1
 
 run:
 	go run cmd/main.go

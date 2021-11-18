@@ -37,7 +37,7 @@ type Task struct {
 	Payload map[string]interface{} `json:"payload"`
 	// Result shows the result of a task processing.
 	Result map[string]interface{} `json:"result,omitempty"`
-	// Meta used for a service information.
+	// Meta used for service information.
 	Meta map[string]interface{} `json:"-"`
 }
 
@@ -59,6 +59,12 @@ type Worker interface {
 	Fail(ctx context.Context, id, claimID uuid.UUID, reason string) error
 }
 
+// Supervisor is used for storage maintenance.
+type Supervisor interface {
+	// DeleteStaleTasks cleans storage from stale tasks.
+	DeleteStaleTasks(ctx context.Context, staleHours int) error
+}
+
 // Gateway describes database access to a task.
 type Gateway interface {
 	// Create makes record with new task.
@@ -67,8 +73,10 @@ type Gateway interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*Task, error)
 	// ClaimPending used for locking tasks.
 	ClaimPending(ctx context.Context, amount int) ([]*Task, error)
-	// MarkAsSucceeded marks a task as succefully processed.
+	// MarkAsSucceeded marks a task as successfully processed.
 	MarkAsSucceeded(ctx context.Context, id, claimID uuid.UUID, result map[string]interface{}) error
 	// MarkAsFailed marks a task as failed.
 	MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, reason string) error
+	// DeleteStaleTasks removes stale tasks.
+	DeleteStaleTasks(ctx context.Context, staleHours int) (int64, error)
 }

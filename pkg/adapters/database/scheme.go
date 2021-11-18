@@ -25,6 +25,8 @@ create table if not exists task (
     payload JSONB not null,
     result JSONB not null default '{}',
     meta JSONB not null default '{}',
+
+	create_at timestamp with time zone not null default current_timestamp,
 	primary key(id)
 ) with (
 	autovacuum_vacuum_threshold = 100,

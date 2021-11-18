@@ -46,7 +46,7 @@ func worker() {
 			}
 		}
 
-		time.Sleep(time.Second)
+		time.Sleep(time.Millisecond * 100)
 	}
 }
 
@@ -63,7 +63,7 @@ func main() {
 	)
 	go worker()
 	uids := map[uuid.UUID]struct{}{}
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 1000; i++ {
 		uid, err := service.Set(time.Now(), time.Now().Add(time.Hour), map[string]interface{}{
 			"source": "example.com",
 			"type":   "parse",
@@ -96,7 +96,7 @@ func main() {
 					"state": task.State,
 				}).Info("task_is_processing")
 			}
-			time.Sleep(time.Second)
+			time.Sleep(time.Millisecond * 100)
 		}
 	}
 
