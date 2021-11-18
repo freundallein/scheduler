@@ -32,8 +32,7 @@ func NewTaskGateway(dsn string) (domain.Gateway, error) {
 
 //Create is for a task creation, returns a created task.
 func (gw *TaskGateway) Create(ctx context.Context, task *domain.Task) (*domain.Task, error) {
-	query := `insert into task(id, execute_at, deadline, payload, meta) values ($1, $2, $3, $4, $5) returning *;`
-	row := gw.pool.QueryRow(ctx, query, task.ID, task.ExecuteAt, task.Deadline, task.Payload, task.Meta)
+	row := gw.pool.QueryRow(ctx, create, task.ID, task.ExecuteAt, task.Deadline, task.Payload, task.Meta)
 	err := row.Scan(
 		&task.ID,
 		&task.ClaimID,
@@ -55,9 +54,8 @@ func (gw *TaskGateway) Create(ctx context.Context, task *domain.Task) (*domain.T
 
 // FindByID returns a task by id.
 func (gw *TaskGateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task, error) {
-	query := `select * from task where id=$1;`
 	task := &domain.Task{}
-	row := gw.pool.QueryRow(ctx, query, id)
+	row := gw.pool.QueryRow(ctx, findByID, id)
 	err := row.Scan(
 		&task.ID,
 		&task.ClaimID,
@@ -79,29 +77,8 @@ func (gw *TaskGateway) FindByID(ctx context.Context, id uuid.UUID) (*domain.Task
 
 // ClaimPending locks and returns pending (or next-attempt failed) task.
 func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.Task, error) {
-	query := `
-	with claimed_tasks as (
-		select 
-			id 
-		from task 
-		where 
-			state <> 'succeeded' 
-			and execute_at <= localtimestamp
-		order by execute_at
-		limit $1
-		for update skip locked
-	)
-	update task 
-	set 
-		state = 'processing', 
-		execute_at = localtimestamp + interval '1 minute',
-		claim_id = uuid_generate_v4()
-	from claimed_tasks
-	where task.id = claimed_tasks.id
-	returning task.*;
-	`
-	tasks := []*domain.Task{}
-	rows, err := gw.pool.Query(ctx, query, amount)
+	tasks := make([]*domain.Task, 0)
+	rows, err := gw.pool.Query(ctx, claimPending, domain.StatePending, domain.StateSucceeded, amount)
 	if err != nil {
 		return nil, err
 	}
@@ -130,21 +107,11 @@ func (gw *TaskGateway) ClaimPending(ctx context.Context, amount int) ([]*domain.
 
 // MarkAsSucceeded marks a task as succefully processed.
 func (gw *TaskGateway) MarkAsSucceeded(ctx context.Context, id, claimID uuid.UUID, result map[string]interface{}) error {
-	query := `
-	update task
-	set 
-		state = 'succeeded',
-		claim_id = null,
-		result = $3
-	where 
-		id = $1
-		and claim_id = $2;
-	`
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		return err
 	}
-	tag, err := gw.pool.Exec(ctx, query, id, claimID, string(resultJSON))
+	tag, err := gw.pool.Exec(ctx, markAsSucceeded, domain.StateSucceeded, id, claimID, string(resultJSON))
 	if err != nil {
 		return err
 	}
@@ -156,17 +123,7 @@ func (gw *TaskGateway) MarkAsSucceeded(ctx context.Context, id, claimID uuid.UUI
 
 // MarkAsFailed marks a task as failed.
 func (gw *TaskGateway) MarkAsFailed(ctx context.Context, id, claimID uuid.UUID, reason string) error {
-	query := `
-	update task
-	set 
-		state = 'failed',
-		claim_id = null,
-		meta = meta::jsonb || $3 || CONCAT('{"attempts":', COALESCE(meta->>'attempts','0')::int + 1, '}')::jsonb
-	where 
-		id = $1
-		and claim_id = $2;
-	`
-	tag, err := gw.pool.Exec(ctx, query, id, claimID, map[string]string{"failReason": reason})
+	tag, err := gw.pool.Exec(ctx, markAsFailed, domain.StateFailed, id, claimID, map[string]string{"failReason": reason})
 	if err != nil {
 		return err
 	}

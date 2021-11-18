@@ -1,40 +1,59 @@
 package database
 
-const initial = `
--- Initial migration
-create extension if not exists "uuid-ossp";
-
-do $$
-begin
-	if not exists (select 1 from pg_type where typname = 'task_state') then
-		create type task_state as enum (
-			'pending',
-			'processing',
-			'succeeded',
-			'failed'
-		);
-    end id;
-end
-$$;
-
-create table if not exists task (
-	id uuid not null,
-	claim_id uuid,
-	state task_state not null default 'pending',
-    execute_at timestamp with time zone not null,
-    deadline timestamp with time zone not null,
-    payload JSONB not null,
-    result JSONB not null default '{}',
-    meta JSONB not null default '{}',
-	primary key(id)
-) with (
-	autovacuum_vacuum_threshold = 100,
-	autovacuum_vacuum_scale_factor = 0.2,
-	autovacuum_vacuum_cost_delay = 20,
-	autovacuum_vacuum_cost_limit = 200
-);
-
-create index task_state on task (execute_at, id) where state <> 'succeeded';
-
--- TODO: add failure table
+const (
+	create = `
+	insert into 
+		task(id, execute_at, deadline, payload, meta) 
+	values 
+		($1, $2, $3, $4, $5)
+	returning id, claim_id, state, execute_at, deadline, payload, result, meta;
 `
+	findByID = `
+	select
+		id, claim_id, state, execute_at, deadline, payload, result, meta
+	from 
+		task 
+	where id=$1;
+`
+	claimPending = `
+	with claimed_tasks as (
+		select 
+			id 
+		from task 
+		where 
+			state <> $2 
+			and execute_at <= localtimestamp
+		order by execute_at
+		limit $3
+		for update skip locked
+	)
+	update task 
+	set 
+		state = $1, 
+		execute_at = localtimestamp + interval '1 minute',
+		claim_id = uuid_generate_v4()
+	from claimed_tasks
+	where task.id = claimed_tasks.id
+	returning task.*;
+`
+	markAsSucceeded = `
+	update task
+	set 
+		state = $1,
+		claim_id = null,
+		result = $4
+	where 
+		id = $2
+		and claim_id = $3;
+`
+	markAsFailed = `
+	update task
+	set 
+		state = $1,
+		claim_id = null,
+		meta = meta::jsonb || $4 || CONCAT('{"attempts":', COALESCE(meta->>'attempts','0')::int + 1, '}')::jsonb
+	where 
+		id = $2
+		and claim_id = $3;
+`
+)
